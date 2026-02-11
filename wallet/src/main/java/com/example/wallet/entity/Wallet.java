@@ -13,8 +13,12 @@ public class Wallet {
     @Column(nullable = false)
     private Double balance = 0.0;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            unique = true
+    )
     private User user;
 
     // ===== GETTERS & SETTERS =====
