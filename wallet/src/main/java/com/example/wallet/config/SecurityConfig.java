@@ -31,13 +31,12 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
 
-            // ✅ CORS CONFIGURED HERE (IMPORTANT)
             .cors(cors -> cors.configurationSource(request -> {
                 var config = new org.springframework.web.cors.CorsConfiguration();
                 config.setAllowedOriginPatterns(List.of("*"));
-                config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(java.util.List.of("*"));
-                config.setAllowCredentials(true);
+                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                config.setAllowedHeaders(List.of("*"));
+                config.setAllowCredentials(false); // IMPORTANT when using *
                 return config;
             }))
 
@@ -45,23 +44,22 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
             .authorizeHttpRequests(auth -> auth
-            	    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-            	    // 🔓 allow ALL user auth endpoints
-            	    .requestMatchers("/api/users/**").permitAll()
+                // 🔓 PUBLIC ENDPOINTS
+                .requestMatchers("/api/users/register").permitAll()
+                .requestMatchers("/api/users/login").permitAll()
 
-            	    // 🔒 secure wallet APIs
-            	    .requestMatchers("/api/wallet/**").authenticated()
+                // 🔒 SECURED ENDPOINTS
+                .requestMatchers("/api/wallet/**").authenticated()
 
-            	    .anyRequest().authenticated()
-            	)
-
+                .anyRequest().authenticated()
+            )
 
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
