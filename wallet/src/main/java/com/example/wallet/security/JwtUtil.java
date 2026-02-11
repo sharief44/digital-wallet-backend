@@ -3,6 +3,7 @@ package com.example.wallet.security;
 import java.security.Key;
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -14,12 +15,16 @@ import io.jsonwebtoken.security.Keys;
 public class JwtUtil {
 
     // Secret key (keep long & safe)
-    private static final String SECRET =
-            "mySuperSecretKeyForJwtThatIsAtLeast32CharactersLong";
+	@Value("${JWT_SECRET}")
+	private String secret;
+
 
     private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour
 
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
+    private Key getKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
 
     // Generate token
     public String generateToken(String email) {
@@ -28,7 +33,7 @@ public class JwtUtil {
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -36,7 +41,7 @@ public class JwtUtil {
     public String extractEmail(String token) {
 
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+                .setSigningKey(getKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
