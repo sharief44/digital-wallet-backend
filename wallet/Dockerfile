@@ -1,18 +1,11 @@
-# Use Java 21
-FROM eclipse-temurin:21-jdk
+FROM maven:3.9-eclipse-temurin-21
 
 WORKDIR /app
 
-# Copy everything
 COPY . .
 
-# Give permission to mvnw (VERY IMPORTANT for Linux)
-RUN chmod +x mvnw
-
-# Build the project
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 EXPOSE 8080
 
-# Start Spring Boot
-CMD ["java", "-jar", "target/*.jar"]
+CMD ["java", "-jar", "target/wallet-0.0.1-SNAPSHOT.jar"]
