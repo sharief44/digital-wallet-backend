@@ -14,7 +14,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.example.wallet.security.filter.JwtAuthFilter;
@@ -32,64 +31,47 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // Disable CSRF (REST API)
             .csrf(csrf -> csrf.disable())
 
-            // ✅ Enable CORS
+            // ✅ ENABLE CORS (IMPORTANT FOR VERCEL)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            // Stateless session (JWT)
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
-            // Authorization rules
             .authorizeHttpRequests(auth -> auth
-
-                // Allow preflight requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                // Allow auth endpoints
                 .requestMatchers("/api/users/**").permitAll()
-
-                // Secure wallet endpoints
                 .requestMatchers("/api/wallet/**").authenticated()
-
                 .anyRequest().permitAll()
             )
 
-            // Add JWT filter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // ✅ CORS Configuration
+    // ✅ CORS CONFIGURATION
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        return request -> {
+            CorsConfiguration config = new CorsConfiguration();
 
-        CorsConfiguration configuration = new CorsConfiguration();
+            config.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "https://digital-wallet-frontend-onyp5jx07-sharief44s-projects.vercel.app"
+            ));
 
-        // 🔥 IMPORTANT: Put your Vercel frontend URL here
-        configuration.setAllowedOrigins(List.of(
-                "https://digital-wallet-frontend-ony5jx07-sharief44s-projects.vercel.app"
-        ));
-
-        configuration.setAllowedMethods(List.of(
+            config.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS"
-        ));
+            ));
 
-        configuration.setAllowedHeaders(List.of(
-                "Authorization",
-                "Content-Type"
-        ));
+            config.setAllowedHeaders(List.of("*"));
+            config.setAllowCredentials(false);
 
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-
-        return source;
+            return config;
+        };
     }
 
     @Bean
