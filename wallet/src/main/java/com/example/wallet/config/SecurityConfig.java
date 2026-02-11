@@ -1,7 +1,5 @@
 package com.example.wallet.config;
 
-import java.util.List;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,33 +27,34 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+            // Disable CSRF (required for REST APIs)
             .csrf(csrf -> csrf.disable())
 
-            .cors(cors -> cors.configurationSource(request -> {
-                var config = new org.springframework.web.cors.CorsConfiguration();
-                config.setAllowedOriginPatterns(List.of("*"));
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(List.of("*"));
-                config.setAllowCredentials(false); // IMPORTANT when using *
-                return config;
-            }))
+            // Disable CORS completely for now (Postman doesn't need it)
+            .cors(cors -> cors.disable())
 
+            // Stateless session (JWT)
             .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                // 🔓 PUBLIC ENDPOINTS
-                .requestMatchers("/api/users/register").permitAll()
-                .requestMatchers("/api/users/login").permitAll()
-
-                // 🔒 SECURED ENDPOINTS
-                .requestMatchers("/api/wallet/**").authenticated()
-
-                .anyRequest().authenticated()
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
+            // Authorization rules
+            .authorizeHttpRequests(auth -> auth
+
+                // Allow preflight
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // 🔓 Allow ALL user auth endpoints
+                .requestMatchers("/api/users/**").permitAll()
+
+                // 🔒 Secure wallet endpoints
+                .requestMatchers("/api/wallet/**").authenticated()
+
+                // Allow everything else (safe for now)
+                .anyRequest().permitAll()
+            )
+
+            // Add JWT filter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
