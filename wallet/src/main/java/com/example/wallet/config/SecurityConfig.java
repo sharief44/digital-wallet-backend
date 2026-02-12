@@ -59,8 +59,7 @@ public class SecurityConfig {
             CorsConfiguration config = new CorsConfiguration();
 
             config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "https://digital-wallet-frontend-onyp5jx07-sharief44s-projects.vercel.app"
+                "https://digital-wallet-frontend-iota.vercel.app/"
             ));
 
             config.setAllowedMethods(List.of(
