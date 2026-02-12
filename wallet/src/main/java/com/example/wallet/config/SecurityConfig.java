@@ -59,7 +59,7 @@ public class SecurityConfig {
             CorsConfiguration config = new CorsConfiguration();
 
             config.setAllowedOrigins(List.of(
-                "https://digital-wallet-frontend-iota.vercel.app/"
+            		"https://*.vercel.app"
             ));
 
             config.setAllowedMethods(List.of(
