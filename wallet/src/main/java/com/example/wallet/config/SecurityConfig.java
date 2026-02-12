@@ -15,6 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.wallet.security.filter.JwtAuthFilter;
 
@@ -33,7 +34,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
 
-            // ✅ ENABLE CORS (IMPORTANT FOR VERCEL)
+            // ✅ Enable CORS support in Spring Security
             .cors(cors -> {})
 
             .sessionManagement(session ->
@@ -41,37 +42,49 @@ public class SecurityConfig {
             )
 
             .authorizeHttpRequests(auth -> auth
+                // Allow preflight requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/users/**").permitAll()
+
+                // Public endpoints
                 .requestMatchers("/api/users/register", "/api/users/login").permitAll()
+
+                // Secure wallet endpoints
                 .requestMatchers("/api/wallet/**").authenticated()
+
                 .anyRequest().permitAll()
             )
 
+            // Add JWT filter before UsernamePasswordAuthenticationFilter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // ✅ CORS CONFIGURATION
+    // ✅ Correct CORS Configuration (Wildcard support for Vercel)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        return request -> {
-            CorsConfiguration config = new CorsConfiguration();
 
-            config.setAllowedOrigins(List.of(
-            		"https://*.vercel.app"
-            ));
+        CorsConfiguration configuration = new CorsConfiguration();
 
-            config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
-            ));
+        // IMPORTANT: use setAllowedOriginPatterns for wildcard support
+        configuration.setAllowedOriginPatterns(List.of(
+            "https://*.vercel.app"
+        ));
 
-            config.setAllowedHeaders(List.of("*"));
-            config.setAllowCredentials(false);
+        configuration.setAllowedMethods(List.of(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
 
-            return config;
-        };
+        configuration.setAllowedHeaders(List.of("*"));
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 
     @Bean
