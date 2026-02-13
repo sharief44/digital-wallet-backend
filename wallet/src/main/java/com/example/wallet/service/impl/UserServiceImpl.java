@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.example.wallet.dto.request.LoginRequest;
 import com.example.wallet.dto.request.RegisterRequest;
 import com.example.wallet.dto.response.LoginResponse;
+import com.example.wallet.entity.Role;
 import com.example.wallet.entity.User;
 import com.example.wallet.entity.Wallet;
 import com.example.wallet.repository.UserRepository;
@@ -19,9 +20,9 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    // MANUAL constructor (no Lombok)
     public UserServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder,JwtUtil jwtUtil) {
+                           PasswordEncoder passwordEncoder,
+                           JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
@@ -39,6 +40,9 @@ public class UserServiceImpl implements UserService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
+        // ✅ DEFAULT ROLE
+        user.setRole(Role.ROLE_USER);
+
         Wallet wallet = new Wallet();
         wallet.setUser(user);
         user.setWallet(wallet);
@@ -47,6 +51,7 @@ public class UserServiceImpl implements UserService {
 
         return "User registered successfully";
     }
+
     @Override
     public LoginResponse login(LoginRequest request) {
 
@@ -57,7 +62,11 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        // ✅ Pass role to JWT
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole() != null ? user.getRole().name() : "ROLE_USER"
+        );
 
         return new LoginResponse(
                 token,
@@ -65,6 +74,4 @@ public class UserServiceImpl implements UserService {
                 user.getEmail()
         );
     }
-
-
 }

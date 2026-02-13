@@ -19,6 +19,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    // ✅ NEW FIELD (SAFE – nullable allowed)
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     @OneToOne(
             mappedBy = "user",
             cascade = CascadeType.ALL,
@@ -44,6 +48,14 @@ public class User {
 
     public String getEmail() {
         return email;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public void setEmail(String email) {

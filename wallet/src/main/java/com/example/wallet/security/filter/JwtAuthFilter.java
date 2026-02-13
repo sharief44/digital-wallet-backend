@@ -1,9 +1,10 @@
 package com.example.wallet.security.filter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -28,8 +29,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-
-        // Skip JWT filter for public endpoints
         return path.startsWith("/api/users");
     }
 
@@ -42,7 +41,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // If no header OR not Bearer → just continue
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -55,15 +53,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (jwtUtil.validateToken(token)) {
 
                 String email = jwtUtil.extractEmail(token);
+                String role = jwtUtil.extractRole(token);
 
-                // Only set authentication if not already set
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                    SimpleGrantedAuthority authority =
+                            new SimpleGrantedAuthority(role);
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     email,
                                     null,
-                                    Collections.emptyList() // no roles for now
+                                    List.of(authority)
                             );
 
                     authentication.setDetails(
@@ -76,7 +77,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
-            // If token invalid → clear context but DO NOT block request
             SecurityContextHolder.clearContext();
         }
 
