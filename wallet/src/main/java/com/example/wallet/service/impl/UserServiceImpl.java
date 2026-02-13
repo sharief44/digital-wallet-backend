@@ -71,7 +71,8 @@ public class UserServiceImpl implements UserService {
         return new LoginResponse(
                 token,
                 user.getId(),
-                user.getEmail()
+                user.getEmail(),
+                user.getRole() != null ? user.getRole().name() : "ROLE_USER"
         );
     }
 }
