@@ -34,7 +34,6 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
 
-            // ✅ Enable CORS support in Spring Security
             .cors(cors -> {})
 
             .sessionManagement(session ->
@@ -42,23 +41,27 @@ public class SecurityConfig {
             )
 
             .authorizeHttpRequests(auth -> auth
-                // Allow preflight requests
+
+                // Allow preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // Public endpoints
                 .requestMatchers("/api/users/register", "/api/users/login").permitAll()
 
-                // Secure wallet endpoints
-                .requestMatchers("/api/wallet/**").authenticated()
+                // Admin only endpoints
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                .anyRequest().permitAll()
+                // Wallet endpoints (User + Admin)
+                .requestMatchers("/api/wallet/**").hasAnyRole("USER", "ADMIN")
+
+                .anyRequest().authenticated()
             )
 
-            // Add JWT filter before UsernamePasswordAuthenticationFilter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     // ✅ Correct CORS Configuration (Wildcard support for Vercel)
     @Bean

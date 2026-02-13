@@ -23,7 +23,6 @@ public class WalletServiceImpl implements WalletService {
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
 
-    // Manual constructor (NO Lombok)
     public WalletServiceImpl(
             WalletRepository walletRepository,
             UserRepository userRepository,
@@ -34,6 +33,9 @@ public class WalletServiceImpl implements WalletService {
         this.transactionRepository = transactionRepository;
     }
 
+    // =============================
+    // GET BALANCE
+    // =============================
     @Override
     public Double getBalance(Long userId) {
 
@@ -43,10 +45,13 @@ public class WalletServiceImpl implements WalletService {
                 .getBalance();
     }
 
+    // =============================
+    // ADD MONEY
+    // =============================
     @Override
     public String addMoney(Long userId, Double amount) {
 
-        if (amount <= 0) {
+        if (amount == null || amount <= 0) {
             throw new RuntimeException("Amount must be greater than zero");
         }
 
@@ -55,11 +60,11 @@ public class WalletServiceImpl implements WalletService {
 
         Wallet wallet = user.getWallet();
 
-        // update balance
+        // Update balance
         wallet.setBalance(wallet.getBalance() + amount);
         walletRepository.save(wallet);
 
-        // create transaction
+        // Create transaction
         Transaction txn = new Transaction();
         txn.setAmount(amount);
         txn.setType("CREDIT");
@@ -71,10 +76,13 @@ public class WalletServiceImpl implements WalletService {
         return "Money added successfully";
     }
 
+    // =============================
+    // TRANSFER MONEY
+    // =============================
     @Override
     public String transferMoney(Long fromUserId, Long toUserId, Double amount) {
 
-        if (amount <= 0) {
+        if (amount == null || amount <= 0) {
             throw new RuntimeException("Amount must be greater than zero");
         }
 
@@ -95,15 +103,15 @@ public class WalletServiceImpl implements WalletService {
             throw new RuntimeException("Insufficient balance");
         }
 
-        // 1️⃣ Deduct from sender
+        // Deduct from sender
         fromWallet.setBalance(fromWallet.getBalance() - amount);
         walletRepository.save(fromWallet);
 
-        // 2️⃣ Add to receiver
+        // Add to receiver
         toWallet.setBalance(toWallet.getBalance() + amount);
         walletRepository.save(toWallet);
 
-        // 3️⃣ Sender transaction (DEBIT)
+        // Sender transaction
         Transaction debitTxn = new Transaction();
         debitTxn.setAmount(amount);
         debitTxn.setType("DEBIT");
@@ -111,7 +119,7 @@ public class WalletServiceImpl implements WalletService {
         debitTxn.setWallet(fromWallet);
         transactionRepository.save(debitTxn);
 
-        // 4️⃣ Receiver transaction (CREDIT)
+        // Receiver transaction
         Transaction creditTxn = new Transaction();
         creditTxn.setAmount(amount);
         creditTxn.setType("CREDIT");
@@ -122,6 +130,9 @@ public class WalletServiceImpl implements WalletService {
         return "Transfer successful";
     }
 
+    // =============================
+    // GET TRANSACTIONS
+    // =============================
     @Override
     public List<TransactionResponse> getTransactions(Long userId) {
 
