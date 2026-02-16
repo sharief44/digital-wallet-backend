@@ -1,10 +1,12 @@
 package com.example.wallet.service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.example.wallet.dto.response.AdminDashboardResponse;
+import com.example.wallet.dto.response.UserResponse;
 import com.example.wallet.repository.TransactionRepository;
 import com.example.wallet.repository.UserRepository;
 import com.example.wallet.repository.WalletRepository;
@@ -24,6 +26,9 @@ public class AdminService {
         this.transactionRepository = transactionRepository;
     }
 
+    // ===============================
+    // Dashboard Stats
+    // ===============================
     public AdminDashboardResponse getDashboardStats() {
 
         long totalUsers = userRepository.count();
@@ -39,5 +44,20 @@ public class AdminService {
                 totalTransactions,
                 totalMoney
         );
+    }
+
+    // ===============================
+    // Get All Users
+    // ===============================
+    public List<UserResponse> getAllUsers() {
+
+        return userRepository.findAll()
+                .stream()
+                .map(user -> new UserResponse(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getRole().name()                ))
+                .toList();
     }
 }
