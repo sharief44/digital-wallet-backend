@@ -53,17 +53,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (jwtUtil.validateToken(token)) {
 
                 String email = jwtUtil.extractEmail(token);
-                String role = jwtUtil.extractRole(token);
+                String role = jwtUtil.extractRole(token); // ADMIN or USER
 
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                    // ✅ FIX: Ensure ROLE_ prefix is always correct
-                    String authorityRole = role.startsWith("ROLE_")
-                            ? role
-                            : "ROLE_" + role;
-
+                    // ✅ Always add ROLE_ prefix here
                     SimpleGrantedAuthority authority =
-                            new SimpleGrantedAuthority(authorityRole);
+                            new SimpleGrantedAuthority("ROLE_" + role);
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
