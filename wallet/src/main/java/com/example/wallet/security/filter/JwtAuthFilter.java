@@ -33,6 +33,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
+        System.out.println("🔎 FILTER RUNNING FOR: " + request.getServletPath());
+
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -44,12 +46,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 if (jwtUtil.validateToken(token)) {
 
                     String email = jwtUtil.extractEmail(token);
-                    String role = jwtUtil.extractRole(token); // ROLE_ADMIN
+                    String role = jwtUtil.extractRole(token);
+
+                    System.out.println("✅ JWT EMAIL: " + email);
+                    System.out.println("✅ JWT ROLE FROM TOKEN: " + role);
 
                     if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
                         SimpleGrantedAuthority authority =
                                 new SimpleGrantedAuthority(role);
+
+                        System.out.println("✅ SETTING AUTHORITY: " + authority.getAuthority());
 
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(
@@ -68,8 +75,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
 
             } catch (Exception e) {
+                System.out.println("❌ JWT ERROR: " + e.getMessage());
                 SecurityContextHolder.clearContext();
             }
+        } else {
+            System.out.println("⚠️ NO AUTH HEADER FOUND");
         }
 
         filterChain.doFilter(request, response);
