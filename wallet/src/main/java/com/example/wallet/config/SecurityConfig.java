@@ -12,7 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.SecurityContextHolderFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,33 +33,27 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
-
             .cors(cors -> {})
-
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-
             .authorizeHttpRequests(auth -> auth
 
-                // Allow preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Public endpoints
                 .requestMatchers("/api/users/register", "/api/users/login").permitAll()
 
-                // Admin only endpoints
-                .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                // 🔥 USE hasRole NOT hasAuthority
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // Wallet endpoints
                 .requestMatchers("/api/wallet/**")
-                .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .hasAnyRole("USER", "ADMIN")
 
                 .anyRequest().authenticated()
             )
 
-            // 🔥 IMPORTANT CHANGE HERE
-            .addFilterBefore(jwtAuthFilter, SecurityContextHolderFilter.class);
+            // 🔥 Register before UsernamePasswordAuthenticationFilter
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
