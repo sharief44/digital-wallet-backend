@@ -51,26 +51,24 @@ public class SecurityConfig {
                 // Admin only endpoints
                 .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
 
-
                 // Wallet endpoints (User + Admin)
-                .requestMatchers("/api/wallet/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/api/wallet/**")
+                .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
                 .anyRequest().authenticated()
             )
 
+            // VERY IMPORTANT: Register JWT filter before UsernamePasswordAuthenticationFilter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-
-    // ✅ Correct CORS Configuration (Wildcard support for Vercel)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // IMPORTANT: use setAllowedOriginPatterns for wildcard support
         configuration.setAllowedOriginPatterns(List.of(
             "https://*.vercel.app"
         ));
