@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.wallet.dto.response.AdminDashboardResponse;
 import com.example.wallet.dto.response.UserResponse;
+import com.example.wallet.entity.Role;
 import com.example.wallet.repository.TransactionRepository;
 import com.example.wallet.repository.UserRepository;
 import com.example.wallet.repository.WalletRepository;
@@ -32,7 +33,7 @@ public class AdminService {
     public AdminDashboardResponse getDashboardStats() {
 
         long totalUsers = userRepository.count();
-        long totalAdmins = userRepository.countByRole("ROLE_ADMIN");
+        long totalAdmins = userRepository.countByRole(Role.ROLE_ADMIN);
         long totalWallets = walletRepository.count();
         long totalTransactions = transactionRepository.count();
         BigDecimal totalMoney = walletRepository.getTotalMoney();
