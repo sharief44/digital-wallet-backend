@@ -12,7 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -51,15 +51,15 @@ public class SecurityConfig {
                 // Admin only endpoints
                 .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
 
-                // Wallet endpoints (User + Admin)
+                // Wallet endpoints
                 .requestMatchers("/api/wallet/**")
                 .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
                 .anyRequest().authenticated()
             )
 
-            // VERY IMPORTANT: Register JWT filter before UsernamePasswordAuthenticationFilter
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            // 🔥 IMPORTANT CHANGE HERE
+            .addFilterBefore(jwtAuthFilter, SecurityContextHolderFilter.class);
 
         return http.build();
     }
