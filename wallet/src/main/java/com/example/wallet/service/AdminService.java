@@ -27,16 +27,21 @@ public class AdminService {
         this.transactionRepository = transactionRepository;
     }
 
-    // ===============================
-    // Dashboard Stats
-    // ===============================
+    // =====================================
+    // Dashboard Statistics
+    // =====================================
     public AdminDashboardResponse getDashboardStats() {
 
         long totalUsers = userRepository.count();
         long totalAdmins = userRepository.countByRole(Role.ROLE_ADMIN);
         long totalWallets = walletRepository.count();
         long totalTransactions = transactionRepository.count();
+
+        // IMPORTANT: Prevent NULL crash
         BigDecimal totalMoney = walletRepository.getTotalMoney();
+        if (totalMoney == null) {
+            totalMoney = BigDecimal.ZERO;
+        }
 
         return new AdminDashboardResponse(
                 totalUsers,
@@ -47,9 +52,9 @@ public class AdminService {
         );
     }
 
-    
+    // =====================================
     // Get All Users
-    
+    // =====================================
     public List<UserResponse> getAllUsers() {
 
         return userRepository.findAll()
@@ -58,7 +63,8 @@ public class AdminService {
                         user.getId(),
                         user.getName(),
                         user.getEmail(),
-                        user.getRole().name()                ))
+                        user.getRole().name()
+                ))
                 .toList();
     }
 }
