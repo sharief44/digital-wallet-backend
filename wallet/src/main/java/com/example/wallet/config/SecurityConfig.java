@@ -49,7 +49,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/register", "/api/users/login").permitAll()
 
                 // Admin only endpoints
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+
 
                 // Wallet endpoints (User + Admin)
                 .requestMatchers("/api/wallet/**").hasAnyRole("USER", "ADMIN")
