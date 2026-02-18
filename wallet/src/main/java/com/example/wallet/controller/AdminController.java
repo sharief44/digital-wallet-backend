@@ -2,9 +2,7 @@ package com.example.wallet.controller;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.wallet.dto.response.AdminDashboardResponse;
 import com.example.wallet.dto.response.UserResponse;
@@ -20,19 +18,24 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    // =====================================
-    // Dashboard Statistics Endpoint
-    // =====================================
+    // Dashboard Stats
     @GetMapping("/dashboard")
     public AdminDashboardResponse getDashboardStats() {
         return adminService.getDashboardStats();
     }
 
-    // =====================================
-    // Get All Users Endpoint
-    // =====================================
+    // Get All Users
     @GetMapping("/users")
     public List<UserResponse> getAllUsers() {
         return adminService.getAllUsers();
+    }
+
+    // 🔥 DELETE USER
+    @DeleteMapping("/users/{id}")
+    public String deleteUser(@PathVariable Long id) {
+
+        adminService.deleteUser(id);
+
+        return "User deleted successfully";
     }
 }

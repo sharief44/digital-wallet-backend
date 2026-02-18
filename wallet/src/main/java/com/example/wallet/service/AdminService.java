@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.example.wallet.dto.response.AdminDashboardResponse;
 import com.example.wallet.dto.response.UserResponse;
 import com.example.wallet.entity.Role;
+import com.example.wallet.entity.User;
 import com.example.wallet.repository.TransactionRepository;
 import com.example.wallet.repository.UserRepository;
 import com.example.wallet.repository.WalletRepository;
@@ -27,21 +28,16 @@ public class AdminService {
         this.transactionRepository = transactionRepository;
     }
 
-    // =====================================
-    // Dashboard Statistics
-    // =====================================
+    // ===============================
+    // Dashboard Stats
+    // ===============================
     public AdminDashboardResponse getDashboardStats() {
 
         long totalUsers = userRepository.count();
         long totalAdmins = userRepository.countByRole(Role.ROLE_ADMIN);
         long totalWallets = walletRepository.count();
         long totalTransactions = transactionRepository.count();
-
-        // IMPORTANT: Prevent NULL crash
         BigDecimal totalMoney = walletRepository.getTotalMoney();
-        if (totalMoney == null) {
-            totalMoney = BigDecimal.ZERO;
-        }
 
         return new AdminDashboardResponse(
                 totalUsers,
@@ -52,9 +48,9 @@ public class AdminService {
         );
     }
 
-    // =====================================
+    // ===============================
     // Get All Users
-    // =====================================
+    // ===============================
     public List<UserResponse> getAllUsers() {
 
         return userRepository.findAll()
@@ -66,5 +62,21 @@ public class AdminService {
                         user.getRole().name()
                 ))
                 .toList();
+    }
+
+    // ===============================
+    // DELETE USER (NEW)
+    // ===============================
+    public void deleteUser(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Prevent deleting admin
+        if (user.getRole() == Role.ROLE_ADMIN) {
+            throw new RuntimeException("Admin cannot be deleted");
+        }
+
+        userRepository.delete(user);
     }
 }
